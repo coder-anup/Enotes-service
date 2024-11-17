@@ -1,6 +1,7 @@
 package com.dash.anup.Enotes_service.service.impl;
 
 import com.dash.anup.Enotes_service.dto.CategoryDto;
+import com.dash.anup.Enotes_service.dto.CategoryResponse;
 import com.dash.anup.Enotes_service.entity.Category;
 import com.dash.anup.Enotes_service.repository.CategoryRepository;
 import com.dash.anup.Enotes_service.service.CategoryService;
@@ -19,6 +20,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    //mapper helps in mapping objects from one model to another, reducing the need for manual mapping code.
     @Autowired
     private ModelMapper mapper;
     @Override
@@ -28,7 +30,6 @@ public class CategoryServiceImpl implements CategoryService {
             category.setIsDeleted(false);
             category.setCreatedBy(1);
             category.setCreatedOn(new Date());
-            category.setUpdatedBy(1);
             Category saveCategory = categoryRepository.save(category);
             if (!ObjectUtils.isEmpty(saveCategory)){
                 return true;
@@ -42,8 +43,16 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> getAllCategory() {
+    public List<CategoryDto> getAllCategory() {
         List<Category> categories = categoryRepository.findAll();
-        return categories;
+        List<CategoryDto> categoryDtoList = categories.stream().map(categoryDto -> mapper.map(categoryDto, CategoryDto.class)).toList();
+        return categoryDtoList;
+    }
+
+    @Override
+    public List<CategoryResponse> getActiveCategory() {
+        List<Category> categories = categoryRepository.findByIsActiveTrue();
+        List<CategoryResponse> activeCategories = categories.stream().map(category -> mapper.map(category, CategoryResponse.class)).toList();
+        return activeCategories;
     }
 }
