@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,4 +15,6 @@ public class CategoryResponse {
     private int id;
     private String name;
     private String description;
+    private Integer createdBy;
+    private Date createdOn;
 }

@@ -13,6 +13,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -27,7 +28,6 @@ public class CategoryServiceImpl implements CategoryService {
     public Boolean saveCategory(CategoryDto categoryDto) {
         try {
             Category category = mapper.map(categoryDto,Category.class);
-            category.setIsDeleted(false);
             category.setCreatedBy(1);
             category.setCreatedOn(new Date());
             Category saveCategory = categoryRepository.save(category);
@@ -43,16 +43,53 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> getAllCategory() {
-        List<Category> categories = categoryRepository.findAll();
-        List<CategoryDto> categoryDtoList = categories.stream().map(categoryDto -> mapper.map(categoryDto, CategoryDto.class)).toList();
-        return categoryDtoList;
-    }
-
-    @Override
     public List<CategoryResponse> getActiveCategory() {
         List<Category> categories = categoryRepository.findByIsActiveTrue();
         List<CategoryResponse> activeCategories = categories.stream().map(category -> mapper.map(category, CategoryResponse.class)).toList();
         return activeCategories;
+    }
+
+    @Override
+    public List<CategoryResponse> getInActiveCategory() {
+        List<Category> categories = categoryRepository.findByIsActiveFalse();
+        List<CategoryResponse> allCategories = categories.stream().map(categoryDto -> mapper.map(categoryDto, CategoryResponse.class)).toList();
+        return allCategories;
+    }
+
+
+    @Override
+    public CategoryResponse getCategoryById(Integer id) {
+        Optional<Category> findCategoryById = categoryRepository.findByIdAndIsActiveTrue(id);
+        if (findCategoryById.isPresent()){
+            Category category = findCategoryById.get();
+            return mapper.map(category, CategoryResponse.class);
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean deleteCategory(Integer id) {
+        Optional<Category> findCategoryById = categoryRepository.findById(id);
+        if (findCategoryById.isPresent()){
+            Category category = findCategoryById.get();
+            category.setIsActive(false);
+            category.setIsDeleted(true);
+            categoryRepository.save(category);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean permanentDeleteCategory(Integer id) {
+        Optional<Category> findCategoryById = categoryRepository.findById(id);
+        if (findCategoryById.isPresent()){
+            Category category = findCategoryById.get();
+            if (category.getIsDeleted()==true && category.getIsActive()==false){
+                categoryRepository.deleteById(id);
+                return true;
+            }
+        }
+        return false;
     }
 }
